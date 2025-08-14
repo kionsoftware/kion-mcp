@@ -1,0 +1,20 @@
+# Exclude development files
+.git/
+.gitignore
+run_inspector.sh
+server_log.log
+# Exclude markdown files except README.md (needed for pyproject.toml)
+*.md
+!README.md
+
+# Exclude user-specific files
+auth.sh
+kion_mcp_config.yaml
+
+.venv/
+
+# Exclude cache files
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store

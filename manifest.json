@@ -1,0 +1,76 @@
+{
+  "dxt_version": "0.1",
+  "name": "kion-mcp-server",
+  "version": "0.1.0",
+  "display_name": "Kion MCP Server",
+  "description": "Model Context Protocol server for Kion cloud spend reporting, compliance, and budget management",
+  "long_description": "A comprehensive Desktop Extension that provides tools for interacting with the Kion API. Features include cloud spend reporting with advanced filtering, organizational unit management, budget operations, compliance monitoring, and financial data analysis. Supports both static configuration and dynamic authentication via scripts.",
+  "author": {
+    "name": "Kion MCP Server Team"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "${__dirname}",
+        "run",
+        "kion-mcp-server"
+      ],
+      "env": {
+        "KION_SERVER_URL": "${user_config.server_base_url}",
+        "KION_BEARER_TOKEN": "${user_config.bearer_token}",
+        "KION_DXT_MODE": "true"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "get_spend_report",
+      "description": "Advanced cloud spend reporting with filtering and aggregation capabilities"
+    },
+    {
+      "name": "get_label_key_id",
+      "description": "Helper tool for label-based filtering operations"
+    },
+    {
+      "name": "get_entity_by_id",
+      "description": "Get entity details by ID and type for organizational units, projects, or accounts"
+    },
+    {
+      "name": "many_auto_generated_tools",
+      "description": "Auto-generated tools for various Kion API operations"
+    }
+  ],
+  "user_config": {
+    "server_base_url": {
+      "type": "string",
+      "title": "Kion Server URL",
+      "description": "The full url of your Kion instance. e.g. https://kion.example.com",
+      "required": true
+    },
+    "bearer_token": {
+      "type": "string",
+      "title": "Bearer Token", 
+      "description": "The bearer token for authenticating with the Kion API. You can generate this in your Kion instance under 'App API Keys' in your user menu (upper right corner) by clicking 'Add +' on the API Keys page.",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "keywords": [
+    "kion",
+    "cloud",
+    "spend",
+    "budget",
+    "compliance",
+    "finops",
+    "api"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/kion-mcp"
+  }
+}
