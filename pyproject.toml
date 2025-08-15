@@ -8,11 +8,36 @@ version = "0.1.0"
 description = "Kion MCP Server - Model Context Protocol server for Kion API integration"
 readme = "README.md"
 requires-python = ">=3.13"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Kion Software", email = "support@kion.io"},
+]
+maintainers = [
+    {name = "Kion Software", email = "support@kion.io"},
+]
+keywords = ["mcp", "kion", "cloud", "governance", "api"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+]
 dependencies = [
     "fastmcp>=2.10.5",
     "httpx>=0.28.1",
     "pyyaml>=6.0.2",
 ]
+
+[project.urls]
+Homepage = "https://github.com/kionsoftware/kion-mcp"
+Repository = "https://github.com/kionsoftware/kion-mcp"
+Issues = "https://github.com/kionsoftware/kion-mcp/issues"
+Documentation = "https://github.com/kionsoftware/kion-mcp/blob/main/README.md"
 
 [project.scripts]
 kion-mcp-server = "kion_mcp.server:run"

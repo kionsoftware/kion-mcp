@@ -21,3 +21,5 @@ __pycache__/
 .github/
 Dockerfile
 .dockerignore
+doc/
+scripts/

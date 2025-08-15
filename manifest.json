@@ -58,7 +58,7 @@
     },
     "bearer_token": {
       "type": "string",
-      "title": "Bearer Token", 
+      "title": "Bearer Token",
       "description": "The bearer token for authenticating with the Kion API. You can generate this in your Kion instance under 'App API Keys' in your user menu (upper right corner) by clicking 'Add +' on the API Keys page.",
       "required": true,
       "sensitive": true
