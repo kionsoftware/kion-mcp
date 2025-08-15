@@ -25,6 +25,8 @@ cp pyproject.toml "$TEMP_DIR/"
 cp README.md "$TEMP_DIR/"
 cp uv.lock "$TEMP_DIR/"
 cp .dxtignore "$TEMP_DIR/"
+cp icon.png "$TEMP_DIR/"
+cp LICENSE "$TEMP_DIR/"
 
 # Create server directory structure
 echo "Creating server directory structure..."

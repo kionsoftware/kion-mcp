@@ -19,3 +19,5 @@ __pycache__/
 *.pyo
 .DS_Store
 .github/
+Dockerfile
+.dockerignore

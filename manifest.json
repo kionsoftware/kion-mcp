@@ -6,8 +6,13 @@
   "description": "Model Context Protocol server for Kion cloud spend reporting, compliance, and budget management",
   "long_description": "A comprehensive Desktop Extension that provides tools for interacting with the Kion API. Features include cloud spend reporting with advanced filtering, organizational unit management, budget operations, compliance monitoring, and financial data analysis. Supports both static configuration and dynamic authentication via scripts.",
   "author": {
-    "name": "Kion MCP Server Team"
+    "name": "Nor Labs, Inc., DBA Kion",
+    "email": "support@kion.io"
   },
+  "homepage": "https://github.com/kionsoftware/kion-mcp",
+  "documentation": "https://github.com/kionsoftware/kion-mcp",
+  "support": "https://github.com/kionsoftware/kion-mcp/issues",
+  "icon": "icon.png",
   "server": {
     "type": "python",
     "entry_point": "server/main.py",
@@ -66,11 +71,12 @@
     "budget",
     "compliance",
     "finops",
-    "api"
+    "api",
+    "cloudops"
   ],
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/kion-mcp"
+    "url": "https://github.com/kionsoftware/kion-mcp"
   }
 }
