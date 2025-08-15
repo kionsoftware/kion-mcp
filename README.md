@@ -12,7 +12,7 @@ Releases are published to the `kionsoftware/kion-mcp` repository, and can be run
 
 ### Pypi
 This package can be installed via pip.
-`pip install kion-mcp`
+`pip install kion-mcp-server`
 
 ## Development Setup
 

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "kion-mcp"
+name = "kion-mcp-server"
 version = "0.1.0"
 description = "Kion MCP Server - Model Context Protocol server for Kion API integration"
 readme = "README.md"
