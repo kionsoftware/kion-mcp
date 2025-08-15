@@ -79,7 +79,7 @@ jobs:
           # Install DXT CLI
           npm install -g @anthropic-ai/dxt
           chmod +x scripts/build_dxt.sh
-          cd scripts && ./build_dxt.sh
+          scripts/build_dxt.sh
           
       - name: Create source archive
         run: |
