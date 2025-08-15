@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
-## [0.1.0] - 2025-08-15
+## [0.1.1] - 2025-08-15
 
 Initial release of the Kion MCP Server - a comprehensive Model Context Protocol server that enables AI assistants to interact with Kion cloud governance platform APIs. This release provides essential tools for cloud spend reporting, organizational management, compliance monitoring, and budget operations.
 

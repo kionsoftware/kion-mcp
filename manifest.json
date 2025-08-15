@@ -1,7 +1,7 @@
 {
   "dxt_version": "0.1",
   "name": "kion-mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "display_name": "Kion MCP Server",
   "description": "Model Context Protocol server for Kion cloud spend reporting, compliance, and budget management",
   "long_description": "A comprehensive Desktop Extension that provides tools for interacting with the Kion API. Features include cloud spend reporting with advanced filtering, organizational unit management, budget operations, compliance monitoring, and financial data analysis. Supports both static configuration and dynamic authentication via scripts.",
