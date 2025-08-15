@@ -44,3 +44,6 @@ kion-mcp-server = "kion_mcp.server:run"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/kion_mcp"]
+artifacts = [
+    "fixed_spec.json",
+]
