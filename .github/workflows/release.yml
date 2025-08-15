@@ -117,6 +117,7 @@ jobs:
   build-docker:
     needs: [validate, build-artifacts]
     runs-on: ubuntu-latest
+    environment: release
     steps:
       - uses: actions/checkout@v4
       
@@ -155,6 +156,7 @@ jobs:
   github-release:
     needs: [build-artifacts, publish-pypi, build-docker]
     runs-on: ubuntu-latest
+    environment: release
     permissions:
       contents: write
     steps:
