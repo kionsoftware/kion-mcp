@@ -2,6 +2,9 @@
 
 ## Installation
 
+> [!TIP]
+> For more detailed installation and usage instructions, please see our [support documentation](https://support.kion.io/hc/en-us/articles/38760650970765-MCP-Server-Installation-and-Configuration)
+
 ### Claude Desktop Extension
 `uv` is currently a requirement for the desktop extension. Please see [installation instructions](https://docs.astral.sh/uv/getting-started/installation/)
 
