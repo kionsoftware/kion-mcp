@@ -18,3 +18,8 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+.github/
+Dockerfile
+.dockerignore
+doc/
+scripts/

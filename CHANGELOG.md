@@ -1,0 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Placeholder for next release
+
+## [0.1.1] - 2025-08-15
+
+Initial release of the Kion MCP Server - a comprehensive Model Context Protocol server that enables AI assistants to interact with Kion cloud governance platform APIs. This release provides essential tools for cloud spend reporting, organizational management, compliance monitoring, and budget operations.
+
+### Supported Integrations
+- **Docker**: Multi-platform container support (amd64, arm64)
+- **PyPI**: Standard Python package installation
+- **Desktop Extensions**: Native .dxt packaging for desktop clients
