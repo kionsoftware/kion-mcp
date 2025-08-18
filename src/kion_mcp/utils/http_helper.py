@@ -11,6 +11,23 @@ import httpx
 
 from ..config.settings import KionConfig
 from ..config.auth import AuthManager
+from ..utils.dxt import is_dxt_mode
+
+
+def get_auth_failure_message(config_path: str) -> str:
+    """Get appropriate authentication failure message based on runtime mode."""
+    if is_dxt_mode():
+        return (
+            "Authentication failed. Direct the user to double check their authentication or generate a new app API key since the user's may have just expired. "
+            "The user is running this MCP Server as a dxt so their auth tokens are likely provided by a client side config (they're most likely using Claude Desktop so they can update their App API Key in the Claude Desktop \"Settings\" menu, then click \"Extensions\" on the sidebar, then click \"Configure\" on Kion MCP Server, and then by replacing the Bearer Token field in that menu with a new App API Key from Kion). "
+            f"If they used the config file instead they can update that at {config_path} with a new bearer token instead. "
+            "Inform the user of this and try to guide them through updating their auth info. Once the user says they've fixed the problem get them to restart the app you are running in which should update the auth info."
+        )
+    else:
+        return (
+            f"Authentication failed. Please refresh your bearer token or check your authentication script. "
+            f"Config file: {config_path}"
+        )
 
 
 def build_standard_headers(bearer_token: str) -> dict:
@@ -70,11 +87,8 @@ async def refresh_authentication(
         logging.info("Token refreshed successfully via config reload")
         return True, ""
     except Exception as e:
-        config_path = Path(config._config_path or "kion_mcp_config.yaml").resolve()
-        error_msg = (
-            f"Authentication failed. Please refresh your bearer token or check your authentication script. "
-            f"Config file: {config_path}. Error: {str(e)}"
-        )
+        config_path = str(Path(config._config_path or "kion_mcp_config.yaml").resolve())
+        error_msg = f"Failed to reload authentication config from {config_path}. Error: {str(e)}"
         return False, error_msg
 
 
@@ -128,11 +142,8 @@ async def make_authenticated_request(
                 logging.debug(f"Successful {method} request to {url} after token refresh")
                 return retry_response
             elif retry_response.status_code == 401:
-                config_path = Path(config._config_path or "kion_mcp_config.yaml").resolve()
-                raise Exception(
-                    f"Authentication failed. Please refresh your bearer token or check your authentication script. "
-                    f"Config file: {config_path}"
-                )
+                config_path = str(Path(config._config_path or "kion_mcp_config.yaml").resolve())
+                raise Exception(get_auth_failure_message(config_path))
             else:
                 raise Exception(f"Request failed after token refresh: {retry_response.status_code} {retry_response.text}")
         else:
