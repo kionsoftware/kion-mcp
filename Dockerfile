@@ -31,7 +31,6 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy source code and required spec file
 COPY --from=builder /app/src /app/src
-COPY fixed_spec.json /app/
 
 # Make sure we use venv
 ENV PATH="/app/.venv/bin:$PATH"
