@@ -11,6 +11,7 @@ from fastmcp.server.openapi import OpenAPITool, HTTPRoute
 from .server_management.tool_manager import configure_server_state
 from .server_management.routes import KION_ROUTES
 from .utils.dxt import is_dxt_mode
+from .utils.spec_loader import load_openapi_spec
 from .tools.custom_tools import register_custom_tools
 from .constants.tools import *
 
@@ -65,10 +66,8 @@ async def create_full_server_async() -> FastMCP:
 
     # Load OpenAPI spec
     logging.debug("Loading OpenAPI spec")
-    spec_path = Path(__file__).parent.parent.parent / "fixed_spec.json"
-    with open(spec_path, "r") as f:
-        openapi_spec = json.load(f)
-        logging.debug("OpenAPI spec loaded successfully")
+    openapi_spec = load_openapi_spec()
+    logging.debug("OpenAPI spec loaded successfully")
 
     # Create the MCP server with static routes
     mcp = FastMCP.from_openapi(

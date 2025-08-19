@@ -37,10 +37,6 @@ echo "Copying source code..."
 mkdir -p "$TEMP_DIR/src"
 cp -r src/kion_mcp "$TEMP_DIR/src/"
 
-# Copy OpenAPI spec to expected location (3 levels up from server/kion_mcp/server.py)
-echo "Copying OpenAPI specification..."
-cp fixed_spec.json "$TEMP_DIR/"
-
 # Change to temp directory and build DXT
 echo "Building DXT package..."
 cd "$TEMP_DIR"
