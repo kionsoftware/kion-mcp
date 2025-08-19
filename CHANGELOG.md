@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.2.0] - 2025-08-19
+
+PyPi build support and improved auth feedback.
+
+### Added
+- Better feedback for Authentication failures while running in Claude Desktop Extension Mode [#3](https://github.com/kionsoftware/kion-mcp/pull/3)
+
+### Changed
+- Swagger spec loading refactored to better handle PyPi installations and redundancies. [#4](https://github.com/kionsoftware/kion-mcp/pull/4)
+
 ## [0.1.1] - 2025-08-15
 
 Initial release of the Kion MCP Server - a comprehensive Model Context Protocol server that enables AI assistants to interact with Kion cloud governance platform APIs. This release provides essential tools for cloud spend reporting, organizational management, compliance monitoring, and budget operations.
