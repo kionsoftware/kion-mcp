@@ -99,6 +99,9 @@ def process_none_dimension(spend_data: list, spend_type: str, deduct_credits: bo
     report_totals = calculate_report_totals(deduct_credits, deduct_refunds)
     time_aggregated = {}
     
+    if spend_data is None:
+        spend_data = []
+    
     for item in spend_data:
         spend_info = item.get("spend_data", {})
         time_key = get_time_key(item)
@@ -161,6 +164,9 @@ def process_regular_dimensions(spend_data: list, spend_type: str, deduct_credits
     report_totals = calculate_report_totals(deduct_credits, deduct_refunds)
     grouped_data = {}
     
+    if spend_data is None:
+        spend_data = []
+    
     for item in spend_data:
         group_name = item.get("group_name", "Unknown")
         group_id = item.get("group_id", 0)
@@ -213,7 +219,7 @@ def process_regular_dimensions(spend_data: list, spend_type: str, deduct_credits
     else:
         # Sort time intervals by chronological order
         for group_data in grouped_data.values():
-            if "time_intervals" in group_data:
+            if "time_intervals" in group_data and group_data["time_intervals"] is not None:
                 sorted_intervals = dict(sorted(group_data["time_intervals"].items()))
                 group_data["time_intervals"] = sorted_intervals
     
@@ -256,7 +262,7 @@ def limit_dimensions_to_max_20(grouped_data: Dict[str, Any], deduct_credits: boo
     if include_timeslice_breakdown:
         other_time_intervals = {}
         for _, dim_data in other_dimensions:
-            if "time_intervals" in dim_data:
+            if "time_intervals" in dim_data and dim_data["time_intervals"] is not None:
                 for time_key, time_data in dim_data["time_intervals"].items():
                     if time_key not in other_time_intervals:
                         other_time_intervals[time_key] = {"spend": 0}
