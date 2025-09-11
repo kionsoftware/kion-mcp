@@ -25,10 +25,10 @@ def calculate_final_spend(spend_info: Dict[str, Any], spend_type: str, deduct_cr
     
     final_spend = base_spend
     if deduct_credits:
-        final_spend -= credits
+        final_spend -= abs(credits)
     if deduct_refunds:
-        final_spend -= refunds
-    
+        final_spend -= abs(refunds)
+
     return final_spend, credits, refunds
 
 
