@@ -155,6 +155,8 @@ async def get_spend_report_impl(
     
     logging.debug("Successfully retrieved spend report")
     raw_data = json.loads(response.text)
+    if raw_data is None or "data" not in raw_data or raw_data["data"] is None:
+        return json.dumps({"message": "No spend data returned, either no spend exists for query or the user may not have permission to generate the spend report", "api_response": raw_data}, indent=2)
     parsed_data = parse_spend_report(raw_data, spend_type, deduct_credits, deduct_refunds, include_timeslice_breakdown, dimension)
     logging.debug("Parsed spend report data successfully")
     return json.dumps(parsed_data, indent=2)
