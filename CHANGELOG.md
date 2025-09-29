@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.3.0] -- 2025-09-29
+
+Better support for strict MCP clients and spend report tool bugfixes.
+
+### Changed
+- The fixed_spec.json used to generate tool endpoints has been changed to ensure it does not cause failures with strict clients. [#7](https://github.com/kionsoftware/kion-mcp/pull/7)
+
+### Fixed
+- Added a default spend type, and fixed issues with permissions and credit/refund math on the spend report tool. [#6]https://github.com/kionsoftware/kion-mcp/pull/6)
+
 ## [0.2.0] - 2025-08-19
 
 PyPi build support and improved auth feedback.
