@@ -28,9 +28,11 @@ classifiers = [
     "Topic :: System :: Systems Administration",
 ]
 dependencies = [
-    "fastmcp>=2.10.5",
+    "authlib>=1.6.5",
+    "fastmcp>=2.13.0",
     "httpx>=0.28.1",
     "pyyaml>=6.0.2",
+    "starlette>=0.49.1",
 ]
 
 [project.urls]
