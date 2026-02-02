@@ -6,7 +6,8 @@ import logging
 import re
 from pathlib import Path
 from fastmcp import FastMCP
-from fastmcp.server.openapi import OpenAPITool, HTTPRoute
+from fastmcp.server.openapi import OpenAPITool
+from fastmcp.utilities.openapi import HTTPRoute
 
 from .server_management.tool_manager import configure_server_state
 from .server_management.routes import KION_ROUTES
