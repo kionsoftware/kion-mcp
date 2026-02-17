@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.4.0] -- 2026-02-09
+
+### Changed
+- Updated dependencies fastmcp, starlette, and authlib.
+
 ## [0.3.0] -- 2025-09-29
 
 Better support for strict MCP clients and spend report tool bugfixes.
