@@ -66,6 +66,7 @@ TOOL_NAME_MAPPING = {
 # Referenceable constants for tool names
 # Account tools
 GET_ACCOUNTS = "get_accounts"
+GET_ACCOUNT_BY_ACCOUNT_NUMBER = "get_account_by_account_number"
 
 # OU tools  
 GET_OUS = "get_ous"

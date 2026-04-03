@@ -7,7 +7,7 @@ from fastmcp import FastMCP, Context
 from .config_tool import setup_kion_config_impl, check_config_status_impl
 from .spend_report import get_spend_report_impl
 from .label_tools import get_label_key_id_impl
-from .entity_tools import get_entity_by_id_impl
+from .entity_tools import get_entity_by_id_impl, get_account_by_account_number_impl
 from .cloud_access_role_tools import get_cloud_access_roles_on_entity_impl, get_cloud_access_role_details_impl
 from .user_info import get_user_info_impl
 from ..server_management.tool_manager import configure_server_state
@@ -164,6 +164,24 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             ctx=ctx,
             entity_type=entity_type,
             entity_id=entity_id,
+            mcp_http_client=mcp._client,
+            config=auth_state["config"],
+            auth_manager=auth_state["auth_manager"]
+        )
+
+    @mcp.tool
+    async def get_account_by_account_number(
+        ctx: Context,
+        account_number: Annotated[str, Field(description="The cloud provider account number to look up (e.g. AWS account ID)")]
+    ) -> str:
+        """Find an account by its cloud provider account number.
+
+        Looks up a Kion account using the cloud provider account number (e.g. an AWS account ID like '121212121212').
+        Returns full account details including name, alias, project, linked role, and other metadata.
+        """
+        return await get_account_by_account_number_impl(
+            ctx=ctx,
+            account_number=account_number,
             mcp_http_client=mcp._client,
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]

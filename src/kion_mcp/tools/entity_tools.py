@@ -51,3 +51,39 @@ async def get_entity_by_id_impl(
 
     logging.debug(f"Successfully retrieved {entity_type} {entity_id}")
     return json.dumps(response.json(), indent=2)
+
+
+async def get_account_by_account_number_impl(
+    ctx: Context,
+    account_number: str,
+    mcp_http_client,
+    config: KionConfig,
+    auth_manager: AuthManager
+) -> str:
+    """Get account details by account number.
+
+    Retrieves account details using the cloud provider account number
+    (e.g. AWS account ID).
+
+    Args:
+        account_number: The cloud provider account number to look up
+        mcp_http_client: HTTP client for API requests
+        config: Kion configuration instance
+        auth_manager: Authentication manager instance
+
+    Returns:
+        str: JSON string containing account details
+
+    Raises:
+        Exception: If the account cannot be retrieved or authentication fails
+    """
+    logging.debug(f"Getting account details for account number: {account_number}")
+
+    endpoint = f"/v3/account/by-account-number/{account_number}"
+
+    response = await make_authenticated_request(
+        mcp_http_client, "GET", endpoint, config, auth_manager, ctx, timeout=20.0
+    )
+
+    logging.debug(f"Successfully retrieved account by account number {account_number}")
+    return json.dumps(response.json(), indent=2)

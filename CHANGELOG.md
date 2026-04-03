@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Placeholder for next release
+- New `get_account_by_account_number` tool to look up accounts by cloud provider account number (e.g. AWS account ID)
 
 ## [0.4.0] -- 2026-02-09
 
