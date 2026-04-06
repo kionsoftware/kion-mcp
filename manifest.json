@@ -15,13 +15,16 @@
   "icon": "icon.png",
   "server": {
     "type": "python",
-    "entry_point": "server/main.py",
+    "entry_point": "src/kion_mcp/server.py",
     "mcp_config": {
       "command": "uv",
       "args": [
         "--directory",
         "${__dirname}",
         "run",
+        "--python",
+        "3.14",
+        "--frozen",
         "kion-mcp-server"
       ],
       "env": {

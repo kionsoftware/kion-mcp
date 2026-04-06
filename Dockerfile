@@ -1,6 +1,6 @@
 # Multi-stage build for Kion MCP Server
 # Stage 1: Builder image with uv
-FROM python:3.13-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
@@ -21,7 +21,7 @@ COPY src/ ./src/
 RUN uv pip install --no-cache-dir -e .
 
 # Stage 2: Runtime image
-FROM python:3.13-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 # Set working directory
 WORKDIR /app
