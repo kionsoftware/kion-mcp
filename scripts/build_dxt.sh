@@ -22,17 +22,14 @@ trap cleanup EXIT
 echo "Copying manifest and core files..."
 cp manifest.json "$TEMP_DIR/"
 cp pyproject.toml "$TEMP_DIR/"
+cp .python-version "$TEMP_DIR/"
 cp README.md "$TEMP_DIR/"
 cp uv.lock "$TEMP_DIR/"
 cp .dxtignore "$TEMP_DIR/"
 cp icon.png "$TEMP_DIR/"
 cp LICENSE "$TEMP_DIR/"
 
-# Create server directory structure
-echo "Creating server directory structure..."
-mkdir -p "$TEMP_DIR/server"
-
-# Copy source code to src directory 
+# Copy source code
 echo "Copying source code..."
 mkdir -p "$TEMP_DIR/src"
 cp -r src/kion_mcp "$TEMP_DIR/src/"
