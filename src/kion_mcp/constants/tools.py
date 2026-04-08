@@ -6,9 +6,6 @@ as well as referenceable constants for easy use in enable/disable operations.
 
 # Mapping from OpenAPI operation IDs to readable tool names
 TOOL_NAME_MAPPING = {
-    # Account tools
-    "apiV1getAccountIndex": "get_accounts",
-    
     # OU tools
     "apiV1getOUIndex": "get_ous", 
     "apiV1postOU": "create_ou",
