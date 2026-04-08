@@ -8,6 +8,7 @@ from .config_tool import setup_kion_config_impl, check_config_status_impl
 from .spend_report import get_spend_report_impl
 from .label_tools import get_label_key_id_impl
 from .entity_tools import get_entity_by_id_impl
+from .account_tools import get_accounts_impl
 from .cloud_access_role_tools import get_cloud_access_roles_on_entity_impl, get_cloud_access_role_details_impl
 from .user_info import get_user_info_impl
 from ..server_management.tool_manager import configure_server_state
@@ -128,6 +129,39 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             exclude_cloud_provider_tag_ids=exclude_cloud_provider_tag_ids,
             include_app_label_ids=include_app_label_ids,
             exclude_app_label_ids=exclude_app_label_ids,
+            mcp_http_client=mcp._client,
+            config=auth_state["config"],
+            auth_manager=auth_state["auth_manager"]
+        )
+
+    @mcp.tool
+    async def get_accounts(
+        ctx: Context,
+        account_number: Annotated[str, Field(description="Cloud provider account identifier (AWS Account Number, Azure Subscription ID, or GCP Project ID). Not the Kion internal ID. When used alone, does a direct lookup returning a single account. Can be combined with other filters to narrow results.")] = None,
+        name: Annotated[str, Field(description="Filter accounts by name pattern (partial match).")] = None,
+        alias: Annotated[str, Field(description="Filter accounts by exact account alias.")] = None,
+        account_type_ids: Annotated[List[int], Field(description="Filter by account type IDs (OR logic — accounts matching any provided type are returned). "
+            "IDs: 1=AWS Standard, 2=AWS GovCloud, 3=Azure CSP Standard, 4=AWS C2S, 5=AWS SC2S, "
+            "6=Azure EA, 7=Azure Government EA, 8=Azure CSP Resource Group, 9=Azure EA Resource Group, "
+            "10=Azure Government EA Resource Group, 11=Azure Government CSP, 12=Azure Government CSP Resource Group, "
+            "13=Azure Secret EA, 14=Azure Secret EA Resource Group, 15=Google Cloud Standard, "
+            "16=Azure MCA, 17=Azure MCA Resource Group, 18=Azure Government MCA, 19=Azure Government MCA Resource Group, "
+            "20=Azure CSP Top Secret, 21=Azure CSP Top Secret Resource Group, 22=Azure EA Top Secret, "
+            "23=Azure EA Top Secret Resource Group, 24=Azure MCA Top Secret, 25=Azure MCA Top Secret Resource Group, "
+            "26=OCI Commercial, 27=OCI Government, 28=OCI Federal, 29=Custom Account."
+        )] = None,
+    ) -> str:
+        """Search for cloud accounts managed in Kion.
+
+        With no parameters, returns all accounts. Filters can be combined to narrow results.
+        The returned Kion 'id' field can be used with other tools like get_entity_by_id or spend report filters.
+        """
+        return await get_accounts_impl(
+            ctx=ctx,
+            account_number=account_number,
+            name=name,
+            alias=alias,
+            account_type_ids=account_type_ids,
             mcp_http_client=mcp._client,
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]

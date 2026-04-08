@@ -8,7 +8,6 @@ from fastmcp.server.openapi import RouteMap, MCPType
 # Static routes - all possible routes (tool availability managed via enable/disable)
 KION_ROUTES = [
     # Base routes
-    RouteMap(methods=["GET"], pattern=r"^/v3/account$", mcp_type=MCPType.TOOL),
     RouteMap(methods=["GET", "POST"], pattern=r"^/v3/ou$", mcp_type=MCPType.TOOL),
     RouteMap(methods=["GET"], pattern=r"^/v3/ou/[^/]+/funding-source$", mcp_type=MCPType.TOOL),
     RouteMap(methods=["GET"], pattern=r"^/v3/project$", mcp_type=MCPType.TOOL),
