@@ -312,7 +312,11 @@ class OAuthManager:
         if not verification_url:
             verification_url = self._oauth_url(f"/oauth/device?user_code={user_code}")
 
-        browser_opened = self._open_browser(verification_url)
+        # For local dev: the OAuth server returns the API port (8081) but
+        # the device approval page is served by the frontend (8080).
+        browser_url = verification_url.replace(":8081", ":8080")
+
+        browser_opened = self._open_browser(browser_url)
 
         if ctx:
             await elicit_device_code_approval(ctx, user_code, verification_url)
