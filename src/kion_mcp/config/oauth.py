@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import platform
 import subprocess
 import time
@@ -72,7 +73,8 @@ class OAuthManager:
         }
         try:
             cache_path = self._cache_file_path()
-            with open(cache_path, "w") as f:
+            fd = os.open(str(cache_path), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as f:
                 json.dump(cache, f, indent=2)
             logging.info("Token cache saved to %s", cache_path)
         except OSError as exc:
@@ -110,7 +112,8 @@ class OAuthManager:
             "scope": self.config.oauth_scopes,
         }
 
-        response = httpx.post(url, data=data, timeout=15)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, data=data, timeout=15)
 
         if response.status_code == 404:
             raise AuthenticationError(
@@ -152,35 +155,36 @@ class OAuthManager:
         deadline = time.time() + expires_in
         poll_interval = interval
 
-        while time.time() < deadline:
-            await asyncio.sleep(poll_interval)
+        async with httpx.AsyncClient() as client:
+            while time.time() < deadline:
+                await asyncio.sleep(poll_interval)
 
-            response = httpx.post(url, data=data, timeout=15)
+                response = await client.post(url, data=data, timeout=15)
 
-            try:
-                body = response.json()
-            except ValueError:
-                raise AuthenticationError(
-                    f"Unexpected response from token endpoint: {response.text}"
-                )
+                try:
+                    body = response.json()
+                except ValueError:
+                    raise AuthenticationError(
+                        f"Unexpected response from token endpoint: {response.text}"
+                    )
 
-            error = body.get("error")
-            if error:
-                if error == "authorization_pending":
-                    continue
-                elif error == "slow_down":
-                    poll_interval += 5
-                    continue
-                elif error == "access_denied":
-                    raise AuthenticationError("Authorization denied by user")
-                elif error == "expired_token":
-                    raise AuthenticationError("Device code expired")
-                else:
-                    desc = body.get("error_description", "")
-                    raise AuthenticationError(f"Token error: {error} — {desc}")
+                error = body.get("error")
+                if error:
+                    if error == "authorization_pending":
+                        continue
+                    elif error == "slow_down":
+                        poll_interval += 5
+                        continue
+                    elif error == "access_denied":
+                        raise AuthenticationError("Authorization denied by user")
+                    elif error == "expired_token":
+                        raise AuthenticationError("Device code expired")
+                    else:
+                        desc = body.get("error_description", "")
+                        raise AuthenticationError(f"Token error: {error} — {desc}")
 
-            if body.get("access_token"):
-                return body
+                if body.get("access_token"):
+                    return body
 
         raise AuthenticationError("Device code expired (polling deadline reached)")
 
@@ -202,7 +206,8 @@ class OAuthManager:
             "client_id": self.config.oauth_client_id,
         }
 
-        response = httpx.post(url, data=data, timeout=15)
+        async with httpx.AsyncClient() as client:
+            response = await client.post(url, data=data, timeout=15)
 
         try:
             body = response.json()

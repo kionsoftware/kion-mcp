@@ -9,6 +9,24 @@ from kion_mcp.config.oauth import OAuthManager
 from kion_mcp.exceptions import AuthenticationError
 
 
+def _mock_async_client(*responses):
+    """Create a mock httpx.AsyncClient context manager that returns canned responses.
+
+    Each call to client.post() returns the next response in the list.
+    If only one response is provided, it's returned for every call.
+    """
+    mock_client = AsyncMock()
+    if len(responses) == 1:
+        mock_client.post.return_value = responses[0]
+    else:
+        mock_client.post.side_effect = list(responses)
+
+    cm = AsyncMock()
+    cm.__aenter__.return_value = mock_client
+    cm.__aexit__.return_value = False
+    return cm, mock_client
+
+
 class TestTokenCache:
     """Test token cache file operations."""
 
@@ -74,6 +92,17 @@ class TestTokenCache:
             mgr.clear_cached_tokens()
             assert not cache_file.exists()
 
+    def test_cache_file_permissions(self, tmp_path, oauth_config):
+        """Token cache file should be readable only by the owner (0600)."""
+        import os
+        import stat
+        cache_file = tmp_path / ".kion_mcp_token_cache.json"
+        with patch.object(OAuthManager, '_cache_file_path', return_value=cache_file):
+            mgr = OAuthManager(oauth_config)
+            mgr._save_token_cache("tok", "ref", 3600)
+            mode = os.stat(cache_file).st_mode
+            assert stat.S_IMODE(mode) == 0o600
+
 
 class TestDeviceFlow:
     """Test device authorization request and token polling."""
@@ -91,7 +120,8 @@ class TestDeviceFlow:
             "expires_in": 900,
             "interval": 5,
         }
-        with patch("httpx.post", return_value=mock_response):
+        cm, _ = _mock_async_client(mock_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             result = await mgr._request_device_authorization()
             assert result["device_code"] == "device123"
             assert result["user_code"] == "ABCD-EFGH"
@@ -102,7 +132,8 @@ class TestDeviceFlow:
         mock_response = MagicMock()
         mock_response.status_code = 404
         mock_response.text = "Not Found"
-        with patch("httpx.post", return_value=mock_response):
+        cm, _ = _mock_async_client(mock_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             with pytest.raises(AuthenticationError, match="OAuth is not enabled"):
                 await mgr._request_device_authorization()
 
@@ -115,7 +146,8 @@ class TestDeviceFlow:
             "error": "invalid_client",
             "error_description": "Unknown client ID",
         }
-        with patch("httpx.post", return_value=mock_response):
+        cm, _ = _mock_async_client(mock_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             with pytest.raises(AuthenticationError, match="invalid_client"):
                 await mgr._request_device_authorization()
 
@@ -135,7 +167,8 @@ class TestDeviceFlow:
             "refresh_token": "refresh-token-456",
         }
 
-        with patch("httpx.post", side_effect=[pending_response, success_response]):
+        cm, _ = _mock_async_client(pending_response, success_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             with patch("asyncio.sleep", new_callable=AsyncMock):
                 result = await mgr._poll_for_token("device123", interval=5, expires_in=900)
                 assert result["access_token"] == "access-token-123"
@@ -148,7 +181,8 @@ class TestDeviceFlow:
         denied_response.status_code = 400
         denied_response.json.return_value = {"error": "access_denied"}
 
-        with patch("httpx.post", return_value=denied_response):
+        cm, _ = _mock_async_client(denied_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             with patch("asyncio.sleep", new_callable=AsyncMock):
                 with pytest.raises(AuthenticationError, match="denied"):
                     await mgr._poll_for_token("device123", interval=5, expires_in=900)
@@ -160,7 +194,8 @@ class TestDeviceFlow:
         expired_response.status_code = 400
         expired_response.json.return_value = {"error": "expired_token"}
 
-        with patch("httpx.post", return_value=expired_response):
+        cm, _ = _mock_async_client(expired_response)
+        with patch("httpx.AsyncClient", return_value=cm):
             with patch("asyncio.sleep", new_callable=AsyncMock):
                 with pytest.raises(AuthenticationError, match="expired"):
                     await mgr._poll_for_token("device123", interval=5, expires_in=900)
@@ -180,8 +215,9 @@ class TestDeviceFlow:
             "expires_in": 3600,
         }
 
+        cm, mock_client = _mock_async_client(slow_response, success_response)
         sleep_mock = AsyncMock()
-        with patch("httpx.post", side_effect=[slow_response, success_response]):
+        with patch("httpx.AsyncClient", return_value=cm):
             with patch("asyncio.sleep", sleep_mock):
                 result = await mgr._poll_for_token("device123", interval=5, expires_in=900)
                 # First sleep should be 5s (original), second should be 10s (5+5 slow_down)
@@ -211,9 +247,10 @@ class TestTokenRefresh:
             "refresh_token": "new-refresh-token",
         }
 
+        cm, _ = _mock_async_client(success_response)
         with patch.object(OAuthManager, '_cache_file_path', return_value=cache_file):
             mgr = OAuthManager(oauth_config)
-            with patch("httpx.post", return_value=success_response):
+            with patch("httpx.AsyncClient", return_value=cm):
                 success, token = await mgr.refresh_access_token()
                 assert success is True
                 assert token == "new-access-token"
@@ -256,9 +293,10 @@ class TestTokenRefresh:
         error_response.status_code = 400
         error_response.json.return_value = {"error": "invalid_grant"}
 
+        cm, _ = _mock_async_client(error_response)
         with patch.object(OAuthManager, '_cache_file_path', return_value=cache_file):
             mgr = OAuthManager(oauth_config)
-            with patch("httpx.post", return_value=error_response):
+            with patch("httpx.AsyncClient", return_value=cm):
                 success, msg = await mgr.refresh_access_token()
                 assert success is False
 
@@ -330,9 +368,10 @@ class TestGetAccessToken:
             "refresh_token": "new-refresh",
         }
 
+        cm, _ = _mock_async_client(refresh_response)
         with patch.object(OAuthManager, '_cache_file_path', return_value=cache_file):
             mgr = OAuthManager(oauth_config)
-            with patch("httpx.post", return_value=refresh_response):
+            with patch("httpx.AsyncClient", return_value=cm):
                 token = await mgr.get_access_token()
                 assert token == "refreshed-token"
 
