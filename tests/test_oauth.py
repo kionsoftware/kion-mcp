@@ -27,6 +27,29 @@ def _mock_async_client(*responses):
     return cm, mock_client
 
 
+class TestOAuthUrl:
+    """Test OAuth URL construction."""
+
+    def test_strips_api_suffix(self, oauth_config):
+        mgr = OAuthManager(oauth_config)
+        assert mgr._oauth_url("/token") == "https://kion.example.com/token"
+
+    def test_strips_api_suffix_with_trailing_slash(self, oauth_config):
+        oauth_config.server_base_url = "https://kion.example.com/api/"
+        mgr = OAuthManager(oauth_config)
+        assert mgr._oauth_url("/token") == "https://kion.example.com/token"
+
+    def test_no_api_suffix(self, oauth_config):
+        oauth_config.server_base_url = "https://kion.example.com"
+        mgr = OAuthManager(oauth_config)
+        assert mgr._oauth_url("/device_authorization") == "https://kion.example.com/device_authorization"
+
+    def test_localhost_with_port(self, oauth_config):
+        oauth_config.server_base_url = "http://localhost:8081"
+        mgr = OAuthManager(oauth_config)
+        assert mgr._oauth_url("/token") == "http://localhost:8081/token"
+
+
 class TestTokenCache:
     """Test token cache file operations."""
 

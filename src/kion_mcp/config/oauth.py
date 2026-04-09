@@ -27,6 +27,18 @@ class OAuthManager:
     def __init__(self, config: KionConfig):
         self.config = config
 
+    def _oauth_url(self, path: str) -> str:
+        """Build an OAuth endpoint URL at the server root (outside /api).
+
+        OAuth endpoints live at the root of the Kion instance, e.g.:
+          /device_authorization, /token, /authorize
+        But server_base_url typically ends with /api, so we strip it.
+        """
+        base = self.config.server_base_url.rstrip("/")
+        if base.endswith("/api"):
+            base = base[:-4]
+        return f"{base}{path}"
+
     @staticmethod
     def _cache_file_path() -> Path:
         """Return the path to the token cache file."""
@@ -104,8 +116,7 @@ class OAuthManager:
         Returns dict with device_code, user_code, verification_uri, expires_in, interval.
         Raises AuthenticationError on failure.
         """
-        url = f"{self.config.server_base_url}/oauth/device_authorization"
-        url = url.replace("/api/oauth/", "/oauth/")
+        url = self._oauth_url("/device_authorization")
 
         data = {
             "client_id": self.config.oauth_client_id,
@@ -143,8 +154,7 @@ class OAuthManager:
         """
         import asyncio
 
-        url = f"{self.config.server_base_url}/oauth/token"
-        url = url.replace("/api/oauth/", "/oauth/")
+        url = self._oauth_url("/token")
 
         data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
@@ -197,8 +207,7 @@ class OAuthManager:
         POST /oauth/token with grant_type=refresh_token.
         Raises AuthenticationError on failure.
         """
-        url = f"{self.config.server_base_url}/oauth/token"
-        url = url.replace("/api/oauth/", "/oauth/")
+        url = self._oauth_url("/token")
 
         data = {
             "grant_type": "refresh_token",
@@ -301,8 +310,7 @@ class OAuthManager:
 
         verification_url = device_resp.get("verification_uri_complete") or device_resp.get("verification_uri", "")
         if not verification_url:
-            base = self.config.server_base_url.replace("/api", "")
-            verification_url = f"{base}/oauth/device?user_code={user_code}"
+            verification_url = self._oauth_url(f"/oauth/device?user_code={user_code}")
 
         browser_opened = self._open_browser(verification_url)
 
