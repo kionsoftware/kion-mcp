@@ -245,15 +245,20 @@ class KionConfig:
     def create_placeholder_config(self) -> str:
         """Create a placeholder config file in the script directory."""
         config_path = Path(__file__).parent.parent.parent.parent / 'kion_mcp_config.yaml'
-        
-        config_data = {
-            'server_base_url': PLACEHOLDER_VALUES['server_base_url'],
-            'bearer_token': PLACEHOLDER_VALUES['bearer_token']
-        }
-        
+
+        # Write raw YAML with comments (yaml.safe_dump doesn't support comments)
+        placeholder_content = (
+            f"server_base_url: {PLACEHOLDER_VALUES['server_base_url']}\n"
+            f"bearer_token: {PLACEHOLDER_VALUES['bearer_token']}\n"
+            "\n"
+            "# OAuth authentication (alternative to bearer_token)\n"
+            "# oauth_client_id: your_oauth_client_id_here\n"
+            "# oauth_scopes: openid offline_access\n"
+        )
+
         try:
             with open(config_path, 'w') as f:
-                yaml.safe_dump(config_data, f, default_flow_style=False)
+                f.write(placeholder_content)
             logging.info(f"Placeholder configuration created at: {config_path.resolve()}")
             self._config_path = config_path
             return str(config_path.resolve())
