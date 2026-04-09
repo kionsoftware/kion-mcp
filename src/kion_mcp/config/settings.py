@@ -24,6 +24,8 @@ class KionConfig:
         self.server_base_url: Optional[str] = None
         self.bearer_token: Optional[str] = None
         self.auth_script_path: Optional[str] = None
+        self.oauth_client_id: Optional[str] = None
+        self.oauth_scopes: str = "openid offline_access"
         self._config_path: Optional[str] = None
         self._loaded_from_env: bool = False
     
@@ -64,6 +66,8 @@ class KionConfig:
             self.server_base_url = self._process_server_url(server_url)
             self.bearer_token = bearer_token
             self.auth_script_path = None  #Auth script not used in DXT mode
+            self.oauth_client_id = os.getenv('KION_OAUTH_CLIENT_ID')
+            self.oauth_scopes = os.getenv('KION_OAUTH_SCOPES', 'openid offline_access')
             self._loaded_from_env = True
             
             logging.info("Configuration loaded from environment variables (DXT mode)")
@@ -110,6 +114,8 @@ class KionConfig:
             raw_server_url = config_data.get('server_base_url')
             self.bearer_token = config_data.get('bearer_token')
             self.auth_script_path = config_data.get('auth_script_path')
+            self.oauth_client_id = config_data.get('oauth_client_id')
+            self.oauth_scopes = config_data.get('oauth_scopes', 'openid offline_access')
             
             # Only process URL if it's not a placeholder
             if raw_server_url and not self._is_placeholder_value('server_base_url', raw_server_url):
@@ -165,7 +171,10 @@ class KionConfig:
             config_data['bearer_token'] = self.bearer_token
         if self.auth_script_path:
             config_data['auth_script_path'] = self.auth_script_path
-        
+        if self.oauth_client_id:
+            config_data['oauth_client_id'] = self.oauth_client_id
+            config_data['oauth_scopes'] = self.oauth_scopes
+
         try:
             with open(self._config_path, 'w') as f:
                 yaml.safe_dump(config_data, f, default_flow_style=False)
@@ -206,8 +215,12 @@ class KionConfig:
         return server_url and not self._is_placeholder_value('server_base_url', server_url)
     
     def needs_configuration(self) -> bool:
-        """Check if configuration needs setup (only checks server URL)."""
-        return not self.has_real_server_url()
+        """Check if configuration needs setup (checks server URL and auth method)."""
+        if not self.has_real_server_url():
+            return True
+        if self.is_oauth_mode():
+            return False
+        return not self.has_real_bearer() and not self.has_auth_script()
     
     def is_script_auth_mode(self) -> bool:
         """Check if using script-based authentication."""
@@ -224,6 +237,10 @@ class KionConfig:
     def has_auth_script(self) -> bool:
         """Check if we have a configured auth script."""
         return self.auth_script_path and self.auth_script_path.strip()
+
+    def is_oauth_mode(self) -> bool:
+        """Check if using OAuth authentication."""
+        return bool(self.oauth_client_id and self.oauth_client_id.strip())
     
     def create_placeholder_config(self) -> str:
         """Create a placeholder config file in the script directory."""
