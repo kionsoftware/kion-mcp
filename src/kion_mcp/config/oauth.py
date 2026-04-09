@@ -91,3 +91,261 @@ class OAuthManager:
             logging.info("Token cache cleared")
         except OSError as exc:
             logging.warning("Failed to clear token cache: %s", exc)
+
+    # ------------------------------------------------------------------
+    # Device Authorization Flow
+    # ------------------------------------------------------------------
+
+    async def _request_device_authorization(self) -> dict:
+        """Request device authorization from the OAuth server.
+        POST /oauth/device_authorization with client_id and scopes.
+        Returns dict with device_code, user_code, verification_uri, expires_in, interval.
+        Raises AuthenticationError on failure.
+        """
+        url = f"{self.config.server_base_url}/oauth/device_authorization"
+        url = url.replace("/api/oauth/", "/oauth/")
+
+        data = {
+            "client_id": self.config.oauth_client_id,
+            "scope": self.config.oauth_scopes,
+        }
+
+        response = httpx.post(url, data=data, timeout=15)
+
+        if response.status_code == 404:
+            raise AuthenticationError(
+                "OAuth is not enabled on this Kion instance. "
+                "Use a bearer token or auth script instead."
+            )
+
+        if response.status_code != 200:
+            try:
+                err = response.json()
+                error_code = err.get("error", "unknown")
+                error_desc = err.get("error_description", response.text)
+                raise AuthenticationError(
+                    f"Device authorization failed: {error_code} — {error_desc}"
+                )
+            except (ValueError, KeyError):
+                raise AuthenticationError(
+                    f"Device authorization failed: HTTP {response.status_code} {response.text}"
+                )
+
+        return response.json()
+
+    async def _poll_for_token(self, device_code: str, interval: int, expires_in: int) -> dict:
+        """Poll the token endpoint until user approves or code expires.
+        Returns dict with access_token, token_type, expires_in, and optionally refresh_token.
+        Raises AuthenticationError on denial, expiry, or unexpected error.
+        """
+        import asyncio
+
+        url = f"{self.config.server_base_url}/oauth/token"
+        url = url.replace("/api/oauth/", "/oauth/")
+
+        data = {
+            "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+            "device_code": device_code,
+            "client_id": self.config.oauth_client_id,
+        }
+
+        deadline = time.time() + expires_in
+        poll_interval = interval
+
+        while time.time() < deadline:
+            await asyncio.sleep(poll_interval)
+
+            response = httpx.post(url, data=data, timeout=15)
+
+            try:
+                body = response.json()
+            except ValueError:
+                raise AuthenticationError(
+                    f"Unexpected response from token endpoint: {response.text}"
+                )
+
+            error = body.get("error")
+            if error:
+                if error == "authorization_pending":
+                    continue
+                elif error == "slow_down":
+                    poll_interval += 5
+                    continue
+                elif error == "access_denied":
+                    raise AuthenticationError("Authorization denied by user")
+                elif error == "expired_token":
+                    raise AuthenticationError("Device code expired")
+                else:
+                    desc = body.get("error_description", "")
+                    raise AuthenticationError(f"Token error: {error} — {desc}")
+
+            if body.get("access_token"):
+                return body
+
+        raise AuthenticationError("Device code expired (polling deadline reached)")
+
+    # ------------------------------------------------------------------
+    # Token Refresh
+    # ------------------------------------------------------------------
+
+    async def _refresh_token(self, refresh_token: str) -> dict:
+        """Exchange a refresh token for new tokens.
+        POST /oauth/token with grant_type=refresh_token.
+        Raises AuthenticationError on failure.
+        """
+        url = f"{self.config.server_base_url}/oauth/token"
+        url = url.replace("/api/oauth/", "/oauth/")
+
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": self.config.oauth_client_id,
+        }
+
+        response = httpx.post(url, data=data, timeout=15)
+
+        try:
+            body = response.json()
+        except ValueError:
+            raise AuthenticationError(
+                f"Unexpected response from token endpoint: {response.text}"
+            )
+
+        if response.status_code != 200:
+            error = body.get("error", "unknown")
+            desc = body.get("error_description", "")
+            raise AuthenticationError(f"Token refresh failed: {error} — {desc}")
+
+        return body
+
+    async def refresh_access_token(self) -> tuple[bool, str]:
+        """Attempt to refresh the access token using a cached refresh token.
+        Returns (True, new_access_token) on success, (False, error_message) on failure.
+        """
+        cache = self._load_token_cache()
+        if not cache or not cache.get("refresh_token"):
+            return False, "No refresh token available"
+
+        refresh_expires = cache.get("refresh_token_expires_at", 0)
+        if self._is_token_expired(refresh_expires):
+            logging.info("Refresh token expired, clearing cache")
+            self.clear_cached_tokens()
+            return False, "Refresh token expired"
+
+        try:
+            token_data = await self._refresh_token(cache["refresh_token"])
+            access_token = token_data["access_token"]
+            new_refresh = token_data.get("refresh_token", cache["refresh_token"])
+            expires_in = token_data.get("expires_in", 3600)
+
+            self._save_token_cache(access_token, new_refresh, expires_in)
+            logging.info("Access token refreshed successfully")
+            return True, access_token
+
+        except AuthenticationError as exc:
+            logging.warning("Token refresh failed: %s", exc)
+            self.clear_cached_tokens()
+            return False, str(exc)
+
+    # ------------------------------------------------------------------
+    # Browser Launch
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _open_browser(url: str) -> bool:
+        """Attempt to open a URL in the system browser.
+        Returns True if the browser command was launched.
+        """
+        system = platform.system()
+        try:
+            if system == "Darwin":
+                subprocess.Popen(["open", url])
+            elif system == "Linux":
+                subprocess.Popen(["xdg-open", url])
+            elif system == "Windows":
+                subprocess.Popen(["rundll32", "url.dll,FileProtocolHandler", url])
+            else:
+                logging.warning("Unknown OS %s, cannot open browser", system)
+                return False
+            return True
+        except OSError as exc:
+            logging.warning("Failed to open browser: %s", exc)
+            return False
+
+    # ------------------------------------------------------------------
+    # Full Device Flow & Main Entry Point
+    # ------------------------------------------------------------------
+
+    async def run_device_flow(self, ctx=None) -> tuple[bool, str]:
+        """Run the full OAuth device authorization flow.
+        Shows user code via elicitation and opens browser.
+        Polls until user approves or code expires.
+        Returns (True, access_token) on success, (False, error_message) on failure.
+        """
+        from ..interaction.elicitation import elicit_device_code_approval
+
+        try:
+            device_resp = await self._request_device_authorization()
+        except AuthenticationError as exc:
+            return False, str(exc)
+
+        user_code = device_resp["user_code"]
+        device_code = device_resp["device_code"]
+        interval = device_resp.get("interval", 5)
+        expires_in = device_resp.get("expires_in", 900)
+
+        verification_url = device_resp.get("verification_uri_complete") or device_resp.get("verification_uri", "")
+        if not verification_url:
+            base = self.config.server_base_url.replace("/api", "")
+            verification_url = f"{base}/oauth/device?user_code={user_code}"
+
+        browser_opened = self._open_browser(verification_url)
+
+        if ctx:
+            await elicit_device_code_approval(ctx, user_code, verification_url)
+        elif not browser_opened:
+            logging.warning(
+                "OAuth device flow: visit %s and enter code %s",
+                verification_url, user_code,
+            )
+
+        try:
+            token_data = await self._poll_for_token(device_code, interval, expires_in)
+            access_token = token_data["access_token"]
+            refresh_token = token_data.get("refresh_token")
+            token_expires_in = token_data.get("expires_in", 3600)
+
+            self._save_token_cache(access_token, refresh_token, token_expires_in)
+            logging.info("Device flow authentication successful")
+            return True, access_token
+
+        except AuthenticationError as exc:
+            self.clear_cached_tokens()
+            return False, str(exc)
+
+    async def get_access_token(self, ctx=None) -> str:
+        """Get a valid access token, using cache, refresh, or device flow.
+        This is the main entry point for obtaining an OAuth token.
+        Follows the chain: cached token -> refresh token -> device flow.
+        Raises AuthenticationError if all methods fail.
+        """
+        # Step 1: Check for a valid cached access token
+        cache = self._load_token_cache()
+        if cache and cache.get("access_token"):
+            expires_at = cache.get("access_token_expires_at", 0)
+            if not self._is_token_expired(expires_at):
+                logging.info("Using cached access token")
+                return cache["access_token"]
+
+        # Step 2: Try refresh token
+        success, token_or_msg = await self.refresh_access_token()
+        if success:
+            return token_or_msg
+
+        # Step 3: Fall back to device flow
+        logging.info("Falling back to device authorization flow")
+        success, token_or_msg = await self.run_device_flow(ctx)
+        if success:
+            return token_or_msg
+
+        raise AuthenticationError(f"OAuth authentication failed: {token_or_msg}")
