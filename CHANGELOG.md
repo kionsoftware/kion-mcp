@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.5.0] -- 2026-05-15
+
+### Added
+- Added the ability to search accounts by account number. [#13](https://github.com/kionsoftware/kion-mcp/pull/13)
+
+### Changed
+- Fixes DXT Python pinning issues, updating fastmcp and authlib. [#12](https://github.com/kionsoftware/kion-mcp/pull/12)
+
 ## [0.4.0] -- 2026-02-09
 
 ### Changed
