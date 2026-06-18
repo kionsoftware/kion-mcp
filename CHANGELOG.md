@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.6.0] -- 2026-06-22
+
+### Changed
+- cryptography 46.0.6 → 49.0.0
+- python-multipart 0.0.24 → 0.0.32
+- pyjwt 2.12.1 → 2.13.0
+- starlette 1.0.0 → 1.3.1
+- authlib 1.6.9 → 1.6.12
+- idna 3.11 → 3.18, lupa 2.6 → 2.8
+
+
 ## [0.5.0] -- 2026-05-15
 
 ### Added
