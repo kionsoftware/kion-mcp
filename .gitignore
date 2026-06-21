@@ -11,6 +11,7 @@ server_log.log
 # AI/IDE Tools
 .claude
 .vscode/
+docs/superpowers/
 
 # Python
 # Byte-compiled / optimized / DLL files

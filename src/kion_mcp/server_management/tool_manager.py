@@ -209,7 +209,14 @@ def setup_authentication_and_middleware(mcp: FastMCP, config=None, auth_manager=
     
     # Set up authentication and middleware
     mcp._client.base_url = config.server_base_url
-    mcp._client.headers = build_standard_headers(auth_manager.get_bearer_token())
+    try:
+        token = auth_manager.get_bearer_token()
+        mcp._client.headers = build_standard_headers(token)
+    except Exception as e:
+        # OAuth first-run or auth not ready — set minimal headers.
+        # The 401 middleware will trigger auth refresh on first API call.
+        logging.warning(f"Could not get initial bearer token: {e}")
+        mcp._client.headers = build_standard_headers("")
     
     auth_middleware = AuthenticationMiddleware(config, auth_manager, mcp)
     mcp.add_middleware(auth_middleware)

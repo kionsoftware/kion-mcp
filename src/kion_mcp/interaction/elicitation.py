@@ -50,6 +50,76 @@ async def elicit_bearer_token(ctx: Context) -> Tuple[bool, str]:
         return False, ""
 
 
+async def elicit_device_code_approval(ctx: Context, user_code: str, verification_url: str) -> bool:
+    """Show the OAuth device code and verification URL to the user.
+    Returns True if the user acknowledged, False if elicitation failed.
+    """
+    message = (
+        f"To authenticate with Kion, please visit the following URL and enter the code shown below.\n\n"
+        f"URL: {verification_url}\n"
+        f"Code: {user_code}\n\n"
+        f"A browser window may have been opened for you. "
+        f"After approving in the browser, click 'Accept' to continue."
+    )
+    try:
+        result = await ctx.elicit(message, response_type=None)
+        match result:
+            case AcceptedElicitation():
+                return True
+            case DeclinedElicitation() | CancelledElicitation():
+                return False
+    except Exception as e:
+        logging.debug(f"Device code elicitation failed: {e}")
+        return False
+
+
+async def elicit_auth_method(ctx: Context) -> tuple[bool, str]:
+    """Elicit preferred authentication method from user.
+    Returns (success, method) where method is one of: 'bearer_token', 'oauth', 'auth_script'
+    """
+    message = (
+        "How would you like to authenticate with Kion?\n\n"
+        "1. Bearer Token - Enter a static API key\n"
+        "2. OAuth (Device Flow) - Authenticate via browser (recommended)\n"
+        "3. Auth Script - Use a custom script to provide tokens\n\n"
+        "Enter 1, 2, or 3:"
+    )
+    try:
+        result = await ctx.elicit(message, response_type=str)
+        match result:
+            case AcceptedElicitation(data=choice):
+                choice = choice.strip()
+                if choice in ("2", "oauth", "OAuth"):
+                    return True, "oauth"
+                elif choice in ("3", "script", "auth_script"):
+                    return True, "auth_script"
+                else:
+                    return True, "bearer_token"
+            case DeclinedElicitation() | CancelledElicitation():
+                return False, ""
+    except Exception as e:
+        logging.debug(f"Auth method elicitation failed: {e}")
+        return False, ""
+
+
+async def elicit_oauth_client_id(ctx: Context) -> tuple[bool, str]:
+    """Elicit OAuth client ID from user."""
+    try:
+        result = await ctx.elicit(
+            "Enter the OAuth Client ID for your Kion instance. "
+            "You can find this in Kion under System Administration > OAuth Clients.",
+            response_type=str,
+        )
+        match result:
+            case AcceptedElicitation(data=client_id):
+                return True, client_id
+            case DeclinedElicitation() | CancelledElicitation():
+                return False, ""
+    except Exception as e:
+        logging.debug(f"OAuth client ID elicitation failed: {e}")
+        return False, ""
+
+
 async def elicit_financial_operation_approval(ctx: Context, operation_type: str, request_data: dict) -> bool:
     """
     Elicit user approval for financial operations like funding source creation and allocation.
