@@ -2,7 +2,8 @@
 """
 Version bump script for kion-mcp project.
 
-Updates both manifest.json and pyproject.toml to the next minor semver version.
+Updates manifest.json, pyproject.toml, and src/kion_mcp/__init__.py to the
+next minor semver version.
 Usage: python scripts/version_bump.py
 """
 
@@ -81,19 +82,56 @@ def update_pyproject_toml(file_path: Path, new_version: str) -> bool:
         return False
 
 
+def update_init_py(file_path: Path, new_version: str) -> bool:
+    """Update __version__ in src/kion_mcp/__init__.py file."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        # Find the __version__ assignment
+        version_pattern = r'(__version__\s*=\s*["\'])([^"\']+)(["\'])'
+        match = re.search(version_pattern, content)
+
+        if not match:
+            print(f"Error: Could not find __version__ field in {file_path}", file=sys.stderr)
+            return False
+
+        old_version = match.group(2)
+        updated_content = re.sub(
+            version_pattern,
+            f'{match.group(1)}{new_version}{match.group(3)}',
+            content
+        )
+
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(updated_content)
+
+        print(f"Updated {file_path}: {old_version} -> {new_version}")
+        return True
+
+    except FileNotFoundError as e:
+        print(f"Error updating {file_path}: {e}", file=sys.stderr)
+        return False
+
+
 def main():
-    """Main function to bump version in both files."""
+    """Main function to bump version across all version files."""
     project_root = Path(__file__).parent.parent
     manifest_path = project_root / "manifest.json"
     pyproject_path = project_root / "pyproject.toml"
-    
-    # Check if both files exist
+    init_path = project_root / "src" / "kion_mcp" / "__init__.py"
+
+    # Check that all files exist
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
         sys.exit(1)
-    
+
     if not pyproject_path.exists():
         print(f"Error: {pyproject_path} not found", file=sys.stderr)
+        sys.exit(1)
+
+    if not init_path.exists():
+        print(f"Error: {init_path} not found", file=sys.stderr)
         sys.exit(1)
     
     # Read current version from manifest.json
@@ -118,6 +156,7 @@ def main():
     success = True
     success &= update_manifest_json(manifest_path, new_version)
     success &= update_pyproject_toml(pyproject_path, new_version)
+    success &= update_init_py(init_path, new_version)
     
     if success:
         print(f"✅ Successfully bumped version to {new_version}")

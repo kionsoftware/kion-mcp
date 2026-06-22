@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Placeholder for next release
 
+## [0.6.0] -- 2026-06-22
+
+### Changed
+- Migrated to FastMCP 3.4.2 [#18](https://github.com/kionsoftware/kion-mcp/pull/18)
+- Updated cryptography, python-multipart, starlette, pyjwt, authlib, idna
+
 ## [0.5.0] -- 2026-05-15
 
 ### Added

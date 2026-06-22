@@ -11,10 +11,11 @@ from ..utils.http_helper import refresh_authentication, get_auth_failure_message
 class AuthenticationMiddleware(Middleware):
     """Middleware to handle authentication and token refresh."""
     
-    def __init__(self, config: KionConfig, auth_manager: AuthManager, mcp_instance):
+    def __init__(self, config: KionConfig, auth_manager: AuthManager, client):
         self.config = config
         self.auth_manager = auth_manager
-        self.mcp = mcp_instance
+        # Shared httpx client (FastMCP 3.x no longer exposes mcp._client).
+        self.client = client
     
     
     async def on_request(self, context: MiddlewareContext, call_next):
@@ -29,7 +30,7 @@ class AuthenticationMiddleware(Middleware):
                 # Try to refresh authentication
                 ctx = context.fastmcp_context
                 refresh_success, error_msg = await refresh_authentication(
-                    self.config, self.auth_manager, self.mcp._client, ctx
+                    self.config, self.auth_manager, self.client, ctx
                 )
                 
                 if refresh_success:

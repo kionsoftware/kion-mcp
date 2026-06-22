@@ -31,10 +31,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
         
-      - name: Run tests (if available)
-        run: |
-          # Add test commands here when tests are implemented
-          echo "No tests configured yet"
+      - name: Run tests
+        run: uv run pytest
           
       - name: Validate package build
         run: uv build

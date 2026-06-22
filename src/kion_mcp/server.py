@@ -6,7 +6,7 @@ import logging
 import re
 from pathlib import Path
 from fastmcp import FastMCP
-from fastmcp.server.openapi import OpenAPITool
+from fastmcp.server.providers.openapi import OpenAPITool
 from fastmcp.utilities.openapi import HTTPRoute
 
 from .server_management.tool_manager import configure_server_state
@@ -58,12 +58,16 @@ def customize_components(_: HTTPRoute, component: OpenAPITool) -> None:
 
 async def create_full_server_async() -> FastMCP:
     """Create the full Kion MCP server with async initialization."""
-    # Use mutable container for config and auth_manager. This allows us to update them later via pass by reference.
-    auth_state = {"config": None, "auth_manager": None}
-    
     # Create HTTP client with placeholder - will be updated during configuration
     logging.debug("Creating http client with placeholder URL")
     client = httpx.AsyncClient(base_url="https://placeholder.com")
+
+    # Use mutable container for config, auth_manager, and the shared http client.
+    # This allows us to update them later via pass by reference. The client is
+    # the same instance handed to FastMCP.from_openapi below; FastMCP 3.x no
+    # longer exposes it as mcp._client, so we thread it through here for the
+    # custom tools and auth middleware.
+    auth_state = {"config": None, "auth_manager": None, "client": client}
 
     # Load OpenAPI spec
     logging.debug("Loading OpenAPI spec")
