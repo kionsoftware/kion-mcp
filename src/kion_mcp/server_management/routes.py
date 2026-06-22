@@ -1,6 +1,6 @@
 """Route definitions for Kion MCP Server."""
 
-from fastmcp.server.openapi import RouteMap, MCPType
+from fastmcp.server.providers.openapi import RouteMap, MCPType
 
 
 # NOTE: When adding a new tool ensure that you're also adding a readable name and const for it in src/kion_mcp/constants/tools.py

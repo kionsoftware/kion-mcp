@@ -129,7 +129,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             exclude_cloud_provider_tag_ids=exclude_cloud_provider_tag_ids,
             include_app_label_ids=include_app_label_ids,
             exclude_app_label_ids=exclude_app_label_ids,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -162,7 +162,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             name=name,
             alias=alias,
             account_type_ids=account_type_ids,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -178,7 +178,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
         return await get_label_key_id_impl(
             ctx=ctx,
             label_id=label_id,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -198,7 +198,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             ctx=ctx,
             entity_type=entity_type,
             entity_id=entity_id,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -216,7 +216,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             ctx=ctx,
             entity_type=entity_type,
             entity_id=entity_id,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -233,7 +233,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
             ctx=ctx,
             role_type=role_type,
             role_id=role_id,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"]
         )
@@ -248,7 +248,7 @@ def register_custom_tools(mcp: FastMCP, auth_state):
         """
         return await get_user_info_impl(
             ctx=ctx,
-            mcp_http_client=mcp._client,
+            mcp_http_client=auth_state["client"],
             config=auth_state["config"],
             auth_manager=auth_state["auth_manager"],
             user_type=user_type,
